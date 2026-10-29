@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fireflies — nightOwl sample wallpaper</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1024; }
+  canvas { display: block; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+  // An interactive sample: fireflies drift at night and gather around the mouse; a click scatters them.
+  const c = document.getElementById('c');
+  const g = c.getContext('2d');
+  let w, h, mouse = { x: -1e4, y: -1e4 }, flies = [];
+  function size() {
+    w = c.width = innerWidth * devicePixelRatio;
+    h = c.height = innerHeight * devicePixelRatio;
+  }
+  size();
+  addEventListener('resize', size);
+  for (let i = 0; i < 160; i++) {
+    flies.push({ x: Math.random() * w, y: Math.random() * h, vx: 0, vy: 0, p: Math.random() * 6.28, s: 1 + Math.random() * 2.5 });
+  }
+  addEventListener('mousemove', e => { mouse.x = e.clientX * devicePixelRatio; mouse.y = e.clientY * devicePixelRatio; });
+  addEventListener('mousedown', () => {
+    for (const f of flies) {
+      const dx = f.x - mouse.x, dy = f.y - mouse.y, d = Math.hypot(dx, dy) + 1;
+      f.vx += dx / d * 14; f.vy += dy / d * 14;
+    }
+  });
+  function frame(t) {
+    const sky = g.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#0b1024'); sky.addColorStop(1, '#1e1b4b');
+    g.fillStyle = sky; g.fillRect(0, 0, w, h);
+    for (const f of flies) {
+      const dx = mouse.x - f.x, dy = mouse.y - f.y, d = Math.hypot(dx, dy);
+      if (d < 260 * devicePixelRatio) { f.vx += dx / d * 0.06; f.vy += dy / d * 0.06; }
+      f.vx += (Math.random() - 0.5) * 0.12; f.vy += (Math.random() - 0.5) * 0.12;
+      f.vx *= 0.97; f.vy *= 0.97;
+      f.x = (f.x + f.vx + w) % w; f.y = (f.y + f.vy + h) % h;
+      const glow = 0.45 + 0.55 * Math.sin(t / 600 + f.p);
+      const r = f.s * devicePixelRatio * 5;
+      const grd = g.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
+      grd.addColorStop(0, `rgba(253, 224, 71, ${glow})`);
+      grd.addColorStop(1, 'rgba(253, 224, 71, 0)');
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(f.x, f.y, r, 0, 6.28); g.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

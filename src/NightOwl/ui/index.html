@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nightOwl</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav" id="nav">
+    <div class="brand"><img src="owl.png" alt=""><span>nightOwl</span></div>
+    <button data-page="home"><i>&#xE80F;</i>Home</button>
+    <button data-page="taskbar"><i>&#xE8A9;</i>Taskbar</button>
+    <button data-page="notifications"><i>&#xEA8F;</i>Notification center</button>
+    <button data-page="startMenu"><i>&#xF0E2;</i>Start menu</button>
+    <button data-page="wallpaper"><i>&#xE91B;</i>Wallpaper</button>
+    <button data-page="explorer"><i>&#xE8B7;</i>Explorer and Settings</button>
+    <button data-page="styler"><i>&#xE790;</i>Styler</button>
+    <button data-page="profiles"><i>&#xE716;</i>Profiles</button>
+    <div class="nav-spacer"></div>
+    <button data-page="about"><i>&#xE946;</i>About</button>
+  </nav>
+  <main class="main" id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="shell.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

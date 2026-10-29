@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>nightOwl player</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  video, img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .fit-fill video, .fit-fill img { object-fit: cover; }
+  .fit-fit video, .fit-fit img { object-fit: contain; }
+  .fit-stretch video, .fit-stretch img { object-fit: fill; }
+  .fit-centre video, .fit-centre img { object-fit: none; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="stage" class="fit-fill">
+  <video id="v" class="hidden" loop muted playsinline disablepictureinpicture></video>
+  <img id="i" class="hidden" alt="">
+</div>
+<script>
+  const stage = document.getElementById('stage');
+  const v = document.getElementById('v');
+  const img = document.getElementById('i');
+  let want = true;
+
+  function play() {
+    want = true;
+    if (!v.classList.contains('hidden')) v.play().catch(() => {});
+  }
+  function pause() {
+    want = false;
+    v.pause();
+  }
+
+  function load(m) {
+    stage.className = 'fit-' + (m.fit || 'fill');
+    want = m.playing !== false;
+    if (m.type === 'video') {
+      img.classList.add('hidden'); img.removeAttribute('src');
+      v.classList.remove('hidden');
+      v.muted = !!m.muted;
+      v.volume = Math.max(0, Math.min(1, m.volume ?? 0));
+      if (v.dataset.src !== m.src) { v.dataset.src = m.src; v.src = m.src; }
+      if (want) v.play().catch(() => {}); else v.pause();
+    } else {
+      v.pause(); v.classList.add('hidden'); v.removeAttribute('src'); v.dataset.src = ''; v.load();
+      img.classList.remove('hidden');
+      if (img.getAttribute('src') !== m.src) img.src = m.src;
+    }
+  }
+
+  // Tell the host when a file can't be played (e.g. HEVC without a decoder) so the app can say why.
+  v.addEventListener('error', () => {
+    if (v.dataset.src) window.chrome.webview.postMessage({ event: 'error', code: v.error ? v.error.code : 0, src: v.dataset.src });
+  });
+  img.addEventListener('error', () => {
+    if (img.getAttribute('src')) window.chrome.webview.postMessage({ event: 'error', code: 4, src: img.src });
+  });
+
+  // Keep the decoder idle while the page is hidden (covered or paused by the host).
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) v.pause(); else if (want) v.play().catch(() => {});
+  });
+
+  window.chrome.webview.addEventListener('message', e => {
+    const m = e.data;
+    if (m.cmd === 'load') load(m);
+    else if (m.cmd === 'play') play();
+    else if (m.cmd === 'pause') pause();
+  });
+</script>
+</body>
+</html>
